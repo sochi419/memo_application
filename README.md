@@ -4,17 +4,14 @@ Sinatraで作成したシンプルなメモアプリです。
 ## 手順
 `git clone`を実行してローカルに複製する
 ```
-% git clone https://github.com/siroemk/memo_app
+% git clone https://github.com/sochi419/memo_app
 ```
-`memo_app`ディレクトリに移動する
-```
-% cd memo_app
-```
+
 `bundle install`を実行し、必要なGemをインストールする
 ```
 % bundle install
 ```
-`app.rb`を実行する
+`memo.rb`を実行する
 ```
 % ruby app.rb
 ```
