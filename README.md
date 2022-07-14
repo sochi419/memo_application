@@ -13,6 +13,6 @@ Sinatraで作成したシンプルなメモアプリです。
 ```
 `memo.rb`を実行する
 ```
-% ruby app.rb
+% ruby memo.rb
 ```
 ブラウザで`http://localhost:4567`にアクセスして表示を確認する
