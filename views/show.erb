@@ -1,11 +1,11 @@
-<p>タイトル：<%= @result["title"] %></p>
+<p>タイトル：<%= h(@hash["title"]) %></p>
 
-<% text = h(@result["body"]) %>
+<% text = h(@hash["body"]) %>
 <%= text.gsub(/\n/, "<br>") %>
 
 <p></p>
 
-<form method="post" action="/show/<%= h(@result["id"]) %>" >
+<form method="post" action="/show/<%= h(@hash["id"]) %>" >
 <input type="hidden" name="_method" value="DELETE">
 <input type="submit" value="削除">
 </form>
@@ -13,11 +13,9 @@
   <p></p>
 
   <button type="button">
-  <a href='/edit/<%= @result["id"] %>'>編集</a>
+  <a href='/edit/<%= @hash["id"] %>'>編集</a>
   </button>  
   <p></p>
   <button type="button">
   <a href='/'>一覧に戻る</a>
   </button>
-  
-

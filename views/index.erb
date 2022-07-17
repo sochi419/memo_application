@@ -2,13 +2,14 @@
 
 <table>
     <tr><th>Id</th><th>タイトル</th></tr>
-    <% @hash.each do |hash| %>
+    <% @hashes.each do |hash| %>
         <tr>
             <td><%= hash["id"] %></td>
-            <td><a href='/show/<%= hash["id"] %>'><%= hash["title"] %></a></td>
+            <td><a href='/show/<%= hash["id"] %>'><%=  h(hash["title"]) %></a></td>
         </tr>
     <% end %>
 </table>
 <p><a href='/new'>新規メモ</a></p>
+
 
 

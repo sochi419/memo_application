@@ -15,24 +15,31 @@ before do
 
   File.open('memo.json') do |file|
     hash = JSON.load(file)
-    @hash = hash['memos']
+    @hashes = hash['memos']
   end
 end
 
 get '/' do
+  @hashes.each do |hash|
+    hash['title'] = h(hash['title'])
+  end
+
   erb :index
 end
 
 get '/show/:id' do
-  # 複数のメモの中で、表示したいメモ(idが一致するもの)を@resultに代入する。
+  # 複数のメモの中で、表示したいメモ(idが一致するもの)を@hashに代入する。
   keyword = params['id'].to_s
-  @result = @hash.find { |x| x['id'].match?(keyword) }
+  @hash = @hashes.find { |x| x['id'].match?(keyword) }
+  @hash['title'] = h(@hash['title'])
+  @hash['body'] = h(@hash['body'])
+
   erb :show
 end
 
 get '/edit/:id' do
   keyword = params['id'].to_s
-  @result = @hash.find { |x| x['id'].match?(keyword) }
+  @hash = @hashes.find { |x| x['id'].match?(keyword) }
   erb :edit
 end
 
@@ -58,10 +65,10 @@ end
 delete '/show/:id' do
   File.open('memo.json', 'w') do |file|
     keyword = params['id'].to_s
-    @result = @hash.find { |x| x['id'].match?(keyword) }
-    @hash.delete(@result)
+    @hash = @hashes.find { |x| x['id'].match?(keyword) }
+    @hashes.delete(@result)
 
-    json = { memos: @hash }
+    json = { memos: @hashes }
     JSON.dump(json, file)
   end
 
@@ -84,9 +91,9 @@ post '/create' do
   new_memo_id = (id_aggregation.max.to_i + 1)
 
   File.open('memo.json', 'w') do |file|
-    @hash << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
+    @hashes << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
 
-    json = { memos: @hash }
+    json = { memos: @hashes }
     JSON.dump(json, file)
   end
 
