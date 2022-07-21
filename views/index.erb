@@ -2,14 +2,11 @@
 
 <table>
     <tr><th>Id</th><th>タイトル</th></tr>
-    <% @hashes.each do |hash| %>
+    <% @memo_infos.each do |memo| %>
         <tr>
-            <td><%= hash["id"] %></td>
-            <td><a href='/show/<%= hash["id"] %>'><%=  h(hash["title"]) %></a></td>
+            <td><%= memo["id"] %></td>
+            <td><a href='/show/<%= memo["id"] %>'><%=  h(memo["title"]) %></a></td>
         </tr>
     <% end %>
 </table>
 <p><a href='/new'>新規メモ</a></p>
-
-
-

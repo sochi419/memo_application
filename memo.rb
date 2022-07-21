@@ -14,32 +14,25 @@ before do
   @memos = File.open('memo.json') { |f| JSON.load(f) }
 
   File.open('memo.json') do |file|
-    hash = JSON.load(file)
-    @hashes = hash['memos']
+    @memo_infos = (JSON.load(file))['memos']
   end
 end
 
 get '/' do
-  @hashes.each do |hash|
-    hash['title'] = h(hash['title'])
-  end
-
   erb :index
 end
 
 get '/show/:id' do
-  # 複数のメモの中で、表示したいメモ(idが一致するもの)を@hashに代入する。
-  keyword = params['id'].to_s
-  @hash = @hashes.find { |x| x['id'].match?(keyword) }
-  @hash['title'] = h(@hash['title'])
-  @hash['body'] = h(@hash['body'])
-
+  @memo_infos.each do |memo|
+    @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
+  end
   erb :show
 end
 
 get '/edit/:id' do
-  keyword = params['id'].to_s
-  @hash = @hashes.find { |x| x['id'].match?(keyword) }
+  @memo_infos.each do |memo|
+    @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
+  end
   erb :edit
 end
 
@@ -64,11 +57,12 @@ end
 
 delete '/show/:id' do
   File.open('memo.json', 'w') do |file|
-    keyword = params['id'].to_s
-    @hash = @hashes.find { |x| x['id'].match?(keyword) }
-    @hashes.delete(@result)
+    @memo_infos.each do |memo|
+      @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
+    end
+    @memo_infos.delete(@memo_info)
 
-    json = { memos: @hashes }
+    json = { memos: @memo_infos }
     JSON.dump(json, file)
   end
 
@@ -81,19 +75,17 @@ end
 
 post '/create' do
   # 新規メモの、ID番号を決める処理。
-  id_aggregation = []
-
-  @memos['memos'].each do |memo|
-    id_aggregation << memo['id']
+  if @memos['memos'] == []
+    new_memo_id = 1
+  else
+    id_aggregation = @memos['memos'].map { |memo| memo['id'].to_i }
+    new_memo_id = (id_aggregation.max + 1)  # 「既存メモの最大ID + 1」 に新規メモのIDを設定する。
   end
 
-  # 「既存メモの最大ID + 1」 に新規メモのIDを設定する。
-  new_memo_id = (id_aggregation.max.to_i + 1)
-
   File.open('memo.json', 'w') do |file|
-    @hashes << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
+    @memo_infos << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
 
-    json = { memos: @hashes }
+    json = { memos: @memo_infos }
     JSON.dump(json, file)
   end
 

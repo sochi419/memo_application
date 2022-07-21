@@ -1,11 +1,11 @@
-<p>タイトル：<%= h(@hash["title"]) %></p>
+<p>タイトル：<%= h(@memo_info["title"]) %></p>
 
-<% text = h(@hash["body"]) %>
+<% text = h(@memo_info["body"]) %>
 <%= text.gsub(/\n/, "<br>") %>
 
 <p></p>
 
-<form method="post" action="/show/<%= h(@hash["id"]) %>" >
+<form method="post" action="/show/<%= @memo_info["id"] %>" >
 <input type="hidden" name="_method" value="DELETE">
 <input type="submit" value="削除">
 </form>
@@ -13,7 +13,7 @@
   <p></p>
 
   <button type="button">
-  <a href='/edit/<%= @hash["id"] %>'>編集</a>
+  <a href='/edit/<%= @memo_info["id"] %>'>編集</a>
   </button>  
   <p></p>
   <button type="button">
