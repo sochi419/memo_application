@@ -5,7 +5,7 @@
     <% @memo_infos.each do |memo| %>
         <tr>
             <td><%= memo["id"] %></td>
-            <td><a href='/show/<%= memo["id"] %>'><%=  h(memo["title"]) %></a></td>
+            <td><a href='/detail/<%= memo["id"] %>'><%=  h(memo["title"]) %></a></td>
         </tr>
     <% end %>
 </table>

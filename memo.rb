@@ -11,10 +11,8 @@ helpers do
 end
 
 before do
-  @memos = File.open('memo.json') { |f| JSON.load(f) }
-
   File.open('memo.json') do |file|
-    @memo_infos = (JSON.load(file))['memos']
+    @memo_infos = (JSON.parse(file.read))['memos']
   end
 end
 
@@ -22,45 +20,37 @@ get '/' do
   erb :index
 end
 
-get '/show/:id' do
-  @memo_infos.each do |memo|
-    @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
-  end
-  erb :show
+get '/detail/:id' do
+  @memo_info = @memo_infos.find { |memo| memo['id'].to_i == params['id'].to_i }
+
+  erb :detail
 end
 
 get '/edit/:id' do
-  @memo_infos.each do |memo|
-    @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
-  end
+  @memo_info = @memo_infos.find { |memo| memo['id'].to_i == params['id'].to_i }
   erb :edit
 end
 
 patch '/edit/:id' do
   File.open('memo.json', 'w') do |file|
-    memo_inputs = [] # 配列memo_inputsに、メモの内容を入れていく。
-
-    @memos['memos'].each do |memo|
-      memo_inputs << if memo['id'] == params['id'].to_s # 編集中のメモは、ユーザーの入力内容を反映させた内容を、memo_inputsに代入。
-                       { 'id' => params['id'].to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
-                     else
-                       memo # 編集中ではないメモは、そのままmemo_inputsに代入。
-                     end
+    memo_inputs = @memo_infos.map do |memo|
+      if memo['id'] == params['id'].to_s # 編集中のメモは、ユーザーの入力内容を反映させた内容を、memo_inputsに代入。
+        { 'id' => params['id'].to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
+      else
+        memo # 編集中ではないメモは、そのままmemo_inputsに代入。
+      end
     end
 
     json = { memos: memo_inputs }
     JSON.dump(json, file)
   end
 
-  redirect "/show/#{params['id']}"
+  redirect "/detail/#{params['id']}"
 end
 
 delete '/show/:id' do
   File.open('memo.json', 'w') do |file|
-    @memo_infos.each do |memo|
-      @memo_info = memo['id'].to_i == params['id'].to_i ? memo : @memo_info
-    end
-    @memo_infos.delete(@memo_info)
+    @memo_infos.delete_if { |memo| memo['id'].to_i == params['id'].to_i }
 
     json = { memos: @memo_infos }
     JSON.dump(json, file)
@@ -75,10 +65,10 @@ end
 
 post '/create' do
   # 新規メモの、ID番号を決める処理。
-  if @memos['memos'] == []
+  if @memo_infos == []
     new_memo_id = 1
   else
-    id_aggregation = @memos['memos'].map { |memo| memo['id'].to_i }
+    id_aggregation = @memo_infos.map { |memo| memo['id'].to_i }
     new_memo_id = (id_aggregation.max + 1)  # 「既存メモの最大ID + 1」 に新規メモのIDを設定する。
   end
 
@@ -89,5 +79,5 @@ post '/create' do
     JSON.dump(json, file)
   end
 
-  redirect "/show/#{new_memo_id}"
+  redirect "/detail/#{new_memo_id}"
 end
