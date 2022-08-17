@@ -33,8 +33,7 @@ post '/memos' do
   if @memo_infos == []
     new_memo_id = 1
   else
-    id_aggregation = @memo_infos.map { |memo| memo['id'].to_i }
-    new_memo_id = (id_aggregation.max_by { |id| id } + 1) # 「既存メモの最大ID + 1」 に新規メモのIDを設定する。
+    new_memo_id = @memo_infos.max_by { |memo| memo['id'].to_i }['id'].to_i + 1
   end
 
   File.open('memo.json', 'w') do |file|
