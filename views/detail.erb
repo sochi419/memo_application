@@ -1,0 +1,21 @@
+<p>タイトル：<%= h(@memo_info["title"]) %></p>
+
+<% text = h(@memo_info["body"]) %>
+<%= text.gsub(/\n/, "<br>") %>
+
+<p></p>
+
+<form method="post" action="/memos/<%= @memo_info["id"] %>" >
+<input type="hidden" name="_method" value="DELETE">
+<input type="submit" value="削除">
+</form>
+
+  <p></p>
+
+  <button type="button">
+  <a href='/memos/<%= @memo_info["id"] %>/edit'>編集</a>
+  </button>  
+  <p></p>
+  <button type="button">
+  <a href='/'>一覧に戻る</a>
+  </button>

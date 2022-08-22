@@ -1,0 +1,12 @@
+<h1>memo</h1>
+
+<table>
+    <tr><th>Id</th><th>タイトル</th></tr>
+    <% @memo_infos.each do |memo| %>
+        <tr>
+            <td><%= memo["id"] %></td>
+            <td><a href='/memos/<%= memo["id"] %>'><%=  h(memo["title"]) %></a></td>
+        </tr>
+    <% end %>
+</table>
+<p><a href='/memos/new'>新規メモ</a></p>
