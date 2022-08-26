@@ -2,7 +2,7 @@
 
 require 'sinatra'
 require 'sinatra/reloader'
-require 'json'
+require 'pg'
 
 helpers do
   def h(text)
@@ -11,8 +11,12 @@ helpers do
 end
 
 before do
-  File.open('memo.json') do |file|
-    @memo_infos = (JSON.parse(file.read))['memos']
+  @memo_infos = []
+  @connect = PG.connect(host: 'localhost', dbname: 'mydb', port: '5432')
+  results = @connect.exec('SELECT * FROM books')
+
+  results.each do |result|
+    @memo_infos << result
   end
 end
 
@@ -30,17 +34,18 @@ end
 
 post '/memos' do
   # 新規メモの、ID番号を決める処理。
-  if @memo_infos == []
-    new_memo_id = 1
-  else
-    new_memo_id = @memo_infos.max_by { |memo| memo['id'].to_i }['id'].to_i + 1
-  end
+  new_memo_id = if @memo_infos == []
+                  1
+                else
+                  @memo_infos.max_by { |memo| memo['id'].to_i }['id'].to_i + 1
+                end
 
-  File.open('memo.json', 'w') do |file|
-    @memo_infos << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
+  @connect.exec('INSERT INTO books VALUES ($1, $2, $3)', [new_memo_id, params['title'], params['content']])
 
-    json = { memos: @memo_infos }
-    JSON.dump(json, file)
+  results = @connect.exec('SELECT * FROM books')
+
+  results.each do |result|
+    @memo_infos << result
   end
 
   redirect "/memos/#{new_memo_id}"
@@ -58,28 +63,23 @@ get '/memos/:id/edit' do
 end
 
 patch '/memos/:id' do
-  File.open('memo.json', 'w') do |file|
-    memo_inputs = @memo_infos.map do |memo|
-      if memo['id'] == params['id'].to_s # 編集中のメモは、ユーザーの入力内容を反映させた内容を、memo_inputsに代入。
-        { 'id' => memo['id'], 'title' => params['title'].to_s, 'body' => params['content'].to_s }
-      else
-        memo # 編集中ではないメモは、そのままmemo_inputsに代入。
-      end
-    end
+  @connect.exec('update books set title=$1, body=$2 where id=$3', [params['title'], params['content'], params['id']])
 
-    json = { memos: memo_inputs }
-    JSON.dump(json, file)
+  results = @connect.exec('SELECT * FROM books')
+
+  results.each do |result|
+    @memo_infos << result
   end
 
   redirect "/memos/#{params['id']}"
 end
 
 delete '/memos/:id' do
-  File.open('memo.json', 'w') do |file|
-    @memo_infos.delete_if { |memo| memo['id'].to_i == params['id'].to_i }
+  @connect.exec("delete from books where id=#{params['id']}")
+  results = @connect.exec('SELECT * FROM books')
 
-    json = { memos: @memo_infos }
-    JSON.dump(json, file)
+  results.each do |result|
+    @memo_infos << result
   end
 
   redirect '/'
