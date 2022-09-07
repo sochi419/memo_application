@@ -2,7 +2,7 @@
 
 <table>
     <tr><th>Id</th><th>タイトル</th></tr>
-    <% @memo_infos.each do |memo| %>
+    <% @memos.each do |memo| %>
         <tr>
             <td><%= memo["id"] %></td>
             <td><a href='/memos/<%= memo["id"] %>'><%=  h(memo["title"]) %></a></td>
