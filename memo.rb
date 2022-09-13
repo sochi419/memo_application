@@ -32,12 +32,13 @@ class Memo
   end
 end
 
+memo = Memo.new
+
 get '/' do
   redirect to('/memos')
 end
 
 get '/memos' do
-  memo = Memo.new
   @memos = memo.list
 
   erb :index
@@ -48,7 +49,6 @@ get '/memos/new' do
 end
 
 post '/memos' do
-  memo = Memo.new
   @memos = memo.list
 
   # 新規メモの、ID番号を決める処理。
@@ -65,20 +65,17 @@ post '/memos' do
 end
 
 get '/memos/:id' do
-  memo = Memo.new
   @memo = memo.list.find { |data| data['id'].to_i == params['id'].to_i }
 
   erb :detail
 end
 
 get '/memos/:id/edit' do
-  memo = Memo.new
   @memo = memo.list.find { |data| data['id'].to_i == params['id'].to_i }
   erb :edit
 end
 
 patch '/memos/:id' do
-  memo = Memo.new
   memo.update(params['title'], params['content'], params['id'])
   @memos = memo.list
 
@@ -86,7 +83,6 @@ patch '/memos/:id' do
 end
 
 delete '/memos/:id' do
-  memo = Memo.new
   memo.delete(params['id'])
   @memos = memo.list
 
