@@ -2,7 +2,7 @@
 
 require 'sinatra'
 require 'sinatra/reloader'
-require 'json'
+require 'pg'
 
 helpers do
   def h(text)
@@ -10,17 +10,37 @@ helpers do
   end
 end
 
-before do
-  File.open('memo.json') do |file|
-    @memo_infos = (JSON.parse(file.read))['memos']
+class Memo
+  def initialize
+    @connect = PG.connect(host: 'localhost', dbname: 'mydb', port: '5432')
+  end
+
+  def list
+    @connect.exec('select * from books order by id asc').to_a
+  end
+
+  def insert(new_memo_id, title, content)
+    @connect.exec('INSERT INTO books VALUES ($1, $2, $3)', [new_memo_id, title, content])
+  end
+
+  def update(title, content, id)
+    @connect.exec('update books set title=$1, body=$2 where id=$3', [title, content, id])
+  end
+
+  def delete(id)
+    @connect.exec('delete from books where id=$1', [id])
   end
 end
+
+memo = Memo.new
 
 get '/' do
   redirect to('/memos')
 end
 
 get '/memos' do
+  @memos = memo.list
+
   erb :index
 end
 
@@ -29,58 +49,42 @@ get '/memos/new' do
 end
 
 post '/memos' do
+  @memos = memo.list
+
   # 新規メモの、ID番号を決める処理。
-  if @memo_infos == []
+  if @memos.empty?
     new_memo_id = 1
   else
-    new_memo_id = @memo_infos.max_by { |memo| memo['id'].to_i }['id'].to_i + 1
+    id_aggregation = @memos.map { |data| data['id'].to_i }
+    new_memo_id = (id_aggregation.max + 1) # 「既存メモの最大ID + 1」 に新規メモのIDを設定する。
   end
 
-  File.open('memo.json', 'w') do |file|
-    @memo_infos << { 'id' => new_memo_id.to_s, 'title' => params['title'].to_s, 'body' => params['content'].to_s }
-
-    json = { memos: @memo_infos }
-    JSON.dump(json, file)
-  end
+  memo.insert(new_memo_id, params['title'], params['content'])
 
   redirect "/memos/#{new_memo_id}"
 end
 
 get '/memos/:id' do
-  @memo_info = @memo_infos.find { |memo| memo['id'].to_i == params['id'].to_i }
+  @memo = memo.list.find { |data| data['id'].to_i == params['id'].to_i }
 
   erb :detail
 end
 
 get '/memos/:id/edit' do
-  @memo_info = @memo_infos.find { |memo| memo['id'].to_i == params['id'].to_i }
+  @memo = memo.list.find { |data| data['id'].to_i == params['id'].to_i }
   erb :edit
 end
 
 patch '/memos/:id' do
-  File.open('memo.json', 'w') do |file|
-    memo_inputs = @memo_infos.map do |memo|
-      if memo['id'] == params['id'].to_s # 編集中のメモは、ユーザーの入力内容を反映させた内容を、memo_inputsに代入。
-        { 'id' => memo['id'], 'title' => params['title'].to_s, 'body' => params['content'].to_s }
-      else
-        memo # 編集中ではないメモは、そのままmemo_inputsに代入。
-      end
-    end
-
-    json = { memos: memo_inputs }
-    JSON.dump(json, file)
-  end
+  memo.update(params['title'], params['content'], params['id'])
+  @memos = memo.list
 
   redirect "/memos/#{params['id']}"
 end
 
 delete '/memos/:id' do
-  File.open('memo.json', 'w') do |file|
-    @memo_infos.delete_if { |memo| memo['id'].to_i == params['id'].to_i }
-
-    json = { memos: @memo_infos }
-    JSON.dump(json, file)
-  end
+  memo.delete(params['id'])
+  @memos = memo.list
 
   redirect '/'
 end
