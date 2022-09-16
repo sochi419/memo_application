@@ -52,7 +52,7 @@ post '/memos' do
   @memos = memo.list
 
   # 新規メモの、ID番号を決める処理。
-  if @memos == []
+  if @memos.empty?
     new_memo_id = 1
   else
     id_aggregation = @memos.map { |data| data['id'].to_i }
